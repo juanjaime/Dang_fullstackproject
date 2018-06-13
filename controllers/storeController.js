@@ -51,7 +51,7 @@ exports.editStore=async(req,res)=>{
 exports.updateStore=async(req,res)=>{
 	req.body.location.type="Point";
 	const store=await Store.findByIdAndUpdate(req.params.id,req.body,{new:true,runvalidators:true}).exec();
-	req.flash('success',`Successfully updated <strong>${store.name}</strong> <a href="/stores/${store.slug}">View store</a>`);
+	req.flash('success',`Successfully updated <strong>${store.name}</strong> <a href="/store/${store.slug}">View store</a>`);
 	res.redirect(`/stores/${store._id}/edit`);
 }
 exports.getStoreBySlug=async(req,res,next)=>{
