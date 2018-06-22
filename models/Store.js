@@ -31,7 +31,21 @@ const storeSchema=new mongoose.Schema({
 			required:"You must supply an address!"
 		}
 	},
-	photo:String
+	photo:String,
+	author:{
+		type: mongoose.Schema.ObjectId,
+		ref: 'User'
+	}
+},{
+	toJSON:{virtuals:true},
+	toObject:{virtuals:true}
+});
+storeSchema.index({
+	name: 'text',
+	description: 'text'
+    });
+storeSchema.index({
+	location:'2dsphere'
 });
 storeSchema.pre('save',async function(next){
 	if(!this.isModified('name')){
@@ -45,7 +59,7 @@ storeSchema.pre('save',async function(next){
 		this.slug =`${this.slug}-${storesWithSlug.length+1}`;
 	}
 	next();
-})
+});
 storeSchema.statics.getTagsList = function(){
 	return this.aggregate([
 		{$unwind:'$tags'},
@@ -53,5 +67,38 @@ storeSchema.statics.getTagsList = function(){
 		{$sort:{count:-1}}
 
 		]);
+};
+storeSchema.virtual('reviews',{
+	ref:'Review',
+	localField:'_id',
+	foreignField: 'store'
+});
+
+storeSchema.statics.getTopStores = function(){
+	return this.aggregate([
+		{$lookup: {
+				from:'reviews',
+				localField:'_id',
+				foreignField:'store',
+				as:'reviews'
+			}},
+		{$match: {'reviews.1':{$exists:true}}},
+		{$project:
+				{
+					photo:'$$ROOT.photo',
+					name:'$$ROOT.name',
+					reviews:'$$ROOT.reviews',
+					averageRating: {$avg:'$reviews.rating'},
+					slug:'$$ROOT.slug'
+				}},
+		{$sort:{averageRating:-1}},
+		{$limit:10}
+	]);
+};
+function autopopulate(next){
+    this.populate('reviews');
+    next()
 }
+storeSchema.pre('find',autopopulate);
+storeSchema.pre('findOne',autopopulate);
 module.exports=mongoose.model('Store',storeSchema);

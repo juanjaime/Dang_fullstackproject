@@ -1,9 +1,7 @@
 @charset "UTF-8";
 html {
   font-size: 10px; }
-.content{
-  margin-bottom:100px;
-}
+
 body {
   background: #262161;
   background: #efefef; }
@@ -16,8 +14,7 @@ body {
 
 .inner {
   max-width: 900px;
-  margin: 0 auto;
-   }
+  margin: 0 auto; }
   @media all and (max-width: 900px) {
     .inner {
       padding: 2rem; } }
